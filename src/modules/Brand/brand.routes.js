@@ -1,0 +1,25 @@
+import { Router } from "express";
+import expressAsyncHandler from "express-async-handler";
+
+import * as brandController from "./brand.controller.js"
+import {auth} from "../../middlewares/auth.middleware.js"
+import {multerMiddleHost} from "../../middlewares/multer.middleware.js"
+import { systemRoles } from "../../utils/system-roles.js";
+import { allowedExtensions } from "../../utils/allowed-extensions.js";
+
+const router = Router();
+
+router.post('/', auth([systemRoles.SELLER]), multerMiddleHost({
+    extensions: allowedExtensions.image
+}).single('image'),
+expressAsyncHandler(brandController.addBrand))
+
+router.get('/', expressAsyncHandler(brandController.getBrandSeparately))
+
+router.delete('/:brandId', auth([systemRoles.SELLER]), expressAsyncHandler(brandController.deleteBrand))
+
+
+
+
+
+export default router;
