@@ -3,6 +3,7 @@ import slugify from "slugify"
 import Category from "../../../DB/models/category.model.js"
 import SubCategory from "../../../DB/models/sub-category.model.js"
 import Brand from "../../../DB/models/brand.model.js"
+import Product from "../../../DB/models/product.model.js"
 import cloudinaryConnection from "../../utils/cloudinary.js"
 import generateUniqueString from "../../utils/generate-unique-string.js"
 
@@ -29,6 +30,7 @@ export const createCategory = async (req, res, next)=> {
     const {secure_url, public_id} = await cloudinaryConnection().uploader.upload(req.file.path, {
         folder: `${process.env.MAIN_FOLDER}/Categories/${folderId}`
     })
+    req.folder = `${process.env.MAIN_FOLDER}/Categories/${folderId}`
     const category = {
         name,
         slug,
@@ -37,11 +39,13 @@ export const createCategory = async (req, res, next)=> {
         addedBy: _id
     }
     const categoryCreated = (await Category.create(category))
+    req.savedDocument = {model: Category, _id: categoryCreated._id}
     if (!categoryCreated) {
         await cloudinaryConnection().api.delete_resources_by_prefix(`${process.env.MAIN_FOLDER}/Categories/${folderId}`)
         await cloudinaryConnection().api.delete_folder(`${process.env.MAIN_FOLDER}/Categories/${folderId}`)
         return next(new Error('Error while adding Category', { cause: 500 }))
     }
+    // send response
     res.status(201).json({ success: true, message: 'Category created successfully', data: categoryCreated })
 }
 
@@ -90,6 +94,7 @@ export const updateCategory = async (req, res, next)=> {
             public_id: newPublicId
         })
         category.Image.secure_url = secure_url
+        req.folder = `${process.env.MAIN_FOLDER}/Categories/${category.folderId}`
     }
     category.updatedBy = _id
     await category.save()
@@ -102,7 +107,19 @@ export const getCategoriesSeparately = async (req, res, next)=> {
 }
 
 export const getCategoriesWithSub = async (req, res, next)=> {
+    const category = await Category.find().populate([ { path: 'subCategories'} ])
+    res.status(200).json({ msg: "Category fetched successfully", data: category })
+}
+
+export const getCategoriesWithSubWithBrand = async (req, res, next)=> {
     const category = await Category.find().populate([ { path: 'subCategories', populate: {path: 'Brands'} } ])
+    res.status(200).json({ msg: "Category fetched successfully", data: category })
+}
+
+export const getCategoriesTillProducts = async (req, res, next)=> {
+    const category = await Category.find().populate([ { path: 'subCategories', 
+    populate: {path: 'Brands', 
+    populate: {path: 'Products'}} } ])
     res.status(200).json({ msg: "Category fetched successfully", data: category })
 }
 
@@ -123,6 +140,11 @@ export const deleteCategory = async (req, res, next)=> {
     }
     // delete related brands
     const brands = await Brand.deleteMany({categoryId})
+    if(brands.deletedCount <= 0){
+        console.log("No related Brands to this Category");
+    }
+    // delete related products
+    const products = await Product.deleteMany({categoryId})
     if(brands.deletedCount <= 0){
         console.log("No related Brands to this Category");
     }

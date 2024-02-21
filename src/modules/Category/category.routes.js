@@ -27,6 +27,10 @@ router.get('/', expressAsyncHandler(categoryController.getCategoriesSeparately))
 
 router.get('/withSubCategories', expressAsyncHandler(categoryController.getCategoriesWithSub))
 
+router.get('/withSubCategoriesWithBrands', expressAsyncHandler(categoryController.getCategoriesWithSubWithBrand))
+
+router.get('/tillProducts', expressAsyncHandler(categoryController.getCategoriesTillProducts))
+
 router.delete('/:categoryId', auth([systemRoles.SUPERADMIN]), expressAsyncHandler(categoryController.deleteCategory))
 
 

@@ -1,5 +1,8 @@
 import db_connection from "../DB/connection.js"
 import { globalResponse } from "./middlewares/global-response.middleware.js"
+import { rollbackSavedDocument } from "./middlewares/rollback-saved-document.middleware.js"
+import { rollbackUploadedFiles } from "./middlewares/rollback-uploaded-files.middleware.js"
+
 import * as routers from "./modules/index.routes.js"
 
 export const initiateApp = (app, express)=> {
@@ -14,8 +17,9 @@ export const initiateApp = (app, express)=> {
     app.use('/category', routers.categoryRouter)
     app.use('/sub-category', routers.subCategoryRouter)
     app.use('/brand', routers.brandRouter)
+    app.use('/product', routers.productRouter)
 
-    app.use(globalResponse)
+    app.use(globalResponse, rollbackUploadedFiles, rollbackSavedDocument)
 
     app.listen(port, ()=> console.log(`server is running on port ${port}`))
 

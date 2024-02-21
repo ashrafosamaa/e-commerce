@@ -3,10 +3,9 @@ import slugify from "slugify"
 import Category from "../../../DB/models/category.model.js";
 import SubCategory from "../../../DB/models/sub-category.model.js";
 import Brand from "../../../DB/models/brand.model.js";
+import Product from "../../../DB/models/product.model.js";
 import cloudinaryConnection from "../../utils/cloudinary.js";
 import generateUniqueString from "../../utils/generate-unique-string.js";
-
-
 
 export const addSubCategory = async (req, res, next)=> {
     // destruct data from user
@@ -39,6 +38,7 @@ export const addSubCategory = async (req, res, next)=> {
     const {secure_url, public_id} = await cloudinaryConnection().uploader.upload(req.file.path, {
         folder: `${process.env.MAIN_FOLDER}/Categories/${category.folderId}/SubCategories/${folderId}` 
     })
+    req.folder = `${process.env.MAIN_FOLDER}/Categories/${category.folderId}/SubCategories/${folderId}` 
     const subCategory = {
         name,
         slug,
@@ -48,22 +48,13 @@ export const addSubCategory = async (req, res, next)=> {
         categoryId
     }
     const subCategoryCreated = await SubCategory.create(subCategory)
+    req.savedDocument = {model: SubCategory, _id: subCategoryCreated._id}
     if (!subCategoryCreated) {
         await cloudinaryConnection().api.delete_resources_by_prefix(`${process.env.MAIN_FOLDER}/Categories/${category.folderId}/SubCategories/${folderId}`)
         await cloudinaryConnection().api.delete_folder(`${process.env.MAIN_FOLDER}/Categories/${category.folderId}/SubCategories/${folderId}`)
         return next(new Error('Error while adding Sub-Category', { cause: 500 }))
     }
     res.status(201).json({ success: true, message: 'Sub-Category created successfully', data: subCategoryCreated })
-}
-
-export const getSubCategoriesSeparately = async (req, res, next)=> {
-    const subCategory = await SubCategory.find()
-    res.status(200).json({ msg: "Sub Category fetched successfully", data: subCategory })
-}
-
-export const getSubCategoriesWithBrand = async (req, res, next)=> {
-    const subCategory = await SubCategory.find().populate('Brands')
-    res.status(200).json({ msg: "Sub Category fetched successfully", data: subCategory })
 }
 
 export const updateSubCategory = async (req, res, next)=> {
@@ -118,10 +109,26 @@ export const updateSubCategory = async (req, res, next)=> {
             public_id: newPublicId
         })
         subCategory.Image.secure_url = secure_url
+        req.folder = `${process.env.MAIN_FOLDER}/Categories/${category.folderId}/SubCategories/${subCategory.folderId}` 
     }
     subCategory.updatedBy = _id
     await subCategory.save()
     res.status(200).json({ success: true, message: 'Sub Category updated successfully'})
+}
+
+export const getSubCategoriesSeparately = async (req, res, next)=> {
+    const subCategory = await SubCategory.find()
+    res.status(200).json({ msg: "Sub Category fetched successfully", data: subCategory })
+}
+
+export const getSubCategoriesWithBrand = async (req, res, next)=> {
+    const subCategory = await SubCategory.find().populate('Brands')
+    res.status(200).json({ msg: "Sub Category fetched successfully", data: subCategory })
+}
+
+export const getSubCategoriesTillProducts = async (req, res, next)=> {
+    const subCategory = await SubCategory.find().populate([ { path: 'Brands', populate: {path: 'Products'} } ])
+    res.status(200).json({ msg: "SubCategory fetched successfully", data: subCategory })
 }
 
 export const deleteSubCategory = async (req, res, next)=> {
@@ -138,6 +145,11 @@ export const deleteSubCategory = async (req, res, next)=> {
     const brands = await Brand.deleteMany({subCategoryId})
     if(brands.deletedCount <= 0){
         console.log("No related Brands to this Sub Category");
+    }
+    // delete related products
+    const products = await Product.deleteMany({categoryId})
+    if(brands.deletedCount <= 0){
+        console.log("No related Brands to this Category");
     }
     // delete images
     await cloudinaryConnection().api.delete_resources_by_prefix(`${process.env.MAIN_FOLDER}/Categories/${subCategory.categoryId.folderId}/SubCategories/${subCategory.folderId}`)

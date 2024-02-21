@@ -14,8 +14,17 @@ const brandSchema = new Schema({
     categoryId: { type: Schema.Types.ObjectId, ref: 'Category', required: true }
     },
     {
-        timestamps: true
-    })
+        timestamps: true,
+        toJSON: { virtuals: true },
+        toObject: { virtuals: true }
+    }
+)
+
+brandSchema.virtual('Products', {
+    ref: 'Product',
+    localField: '_id',
+    foreignField: 'brandId'
+})
 
 const Brand = model('Brand', brandSchema)
 

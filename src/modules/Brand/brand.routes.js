@@ -14,12 +14,16 @@ router.post('/', auth([systemRoles.SELLER]), multerMiddleHost({
 }).single('image'),
 expressAsyncHandler(brandController.addBrand))
 
+router.put('/:brandId', auth([systemRoles.SELLER]), multerMiddleHost({
+    extensions: allowedExtensions.image
+}).single('image'),
+expressAsyncHandler(brandController.updateBrand))
+
 router.get('/', expressAsyncHandler(brandController.getBrandSeparately))
 
+router.get('/tillProducts', expressAsyncHandler(brandController.getBrandWithProducts))
+
 router.delete('/:brandId', auth([systemRoles.SELLER]), expressAsyncHandler(brandController.deleteBrand))
-
-
-
 
 
 export default router;

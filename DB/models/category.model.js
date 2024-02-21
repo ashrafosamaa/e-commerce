@@ -30,6 +30,12 @@ categorySchema.virtual('Brands', {
     foreignField: 'categoryId'
 })
 
+categorySchema.virtual('Products', {
+    ref: 'Product',
+    localField: '_id',
+    foreignField: 'categoryId'
+})
+
 const Category = model('Category', categorySchema)
 
 export default Category

@@ -24,6 +24,12 @@ subCategorySchema.virtual('Brands', {
     foreignField: 'subCategoryId'
 })
 
+subCategorySchema.virtual('Products', {
+    ref: 'Product',
+    localField: '_id',
+    foreignField: 'subCategoryId'
+})
+
 const SubCategory = model('SubCategory', subCategorySchema)
 
 export default SubCategory

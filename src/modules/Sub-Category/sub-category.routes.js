@@ -27,6 +27,8 @@ router.get('/', expressAsyncHandler(SubCategoryController.getSubCategoriesSepara
 
 router.get('/withBrands', expressAsyncHandler(SubCategoryController.getSubCategoriesWithBrand))
 
+router.get('/tillProducts', expressAsyncHandler(SubCategoryController.getSubCategoriesTillProducts))
+
 router.delete('/:subCategoryId', auth([systemRoles.SUPERADMIN]), expressAsyncHandler(SubCategoryController.deleteSubCategory))
 
 

@@ -155,21 +155,15 @@ export const updateProfileData = async (req, res, next)=> {
         addresses,
         age,
     }, {new: true}).select("-password -_id -createdAt -updatedAt -__v -isLoggedIn -isEmailVerified")
-    if (!updateUser) {
-        return res.status(404).json({
-            msg: "Update failed"
-        })
-    }
     // send email
     const isEmailSent = await sendEmailService({
         to: updateUser.email,
         subject: "Welcome To E-commerce",
         message: '<h4>Your account data has been updated successfully</h4>'
     })
-    //check email is sent or not
-    if(!isEmailSent){
-        return res.status(500).json({
-            msg: "Failed to send email, Please try again later"
+    if (!updateUser && !isEmailSent) {
+        return res.status(404).json({
+            msg: "Update failed"
         })
     }
     // send response
@@ -183,37 +177,39 @@ export const updatePassword = async (req, res, next)=> {
     // destruct data from user
     const {_id} = req.authUser
     const {userId} = req.params
-    const {password} = req.body
+    const {password, oldPassword} = req.body
     if(_id != userId){
         return res.status(400).json({msg: "You cannot update this profile's data"})
     }
     // hash password
     const hashedPassword = bcrypt.hashSync(password, +process.env.SALT_ROUNDS)
-    // update user data
-    const updateUser = await User.findByIdAndUpdate(_id, {
-        password: hashedPassword
-    }, {new: true}).select("-password -_id -createdAt -updatedAt -__v -isLoggedIn -isEmailVerified")
-    if (!updateUser) {
-        return res.status(404).json({
-            msg: "Update password failed"
+    // find user
+    const user = await User.findById(_id)
+    // check old password
+    const isPasswordMatch = bcrypt.compareSync(oldPassword, user.password)
+    if(!isPasswordMatch){
+        return res.status(400).json({
+            msg: "Invalid old password"
         })
     }
+    // update user data
+    user.password = hashedPassword
+    await user.save()
     // send email
     const isEmailSent = await sendEmailService({
-        to: updateUser.email,
+        to: user.email,
         subject: "Welcome To E-commerce",
         message: '<h4>Your password has been updated successfully</h4>'
     })
-    //check email is sent or not
-    if(!isEmailSent){
-        return res.status(500).json({
-            msg: "Failed to send email, Please try again later"
+    if (!isEmailSent) {
+        return res.status(404).json({
+            msg: "Update password failed"
         })
     }
     // send response
     res.status(200).json({
         msg: "User password updated successfully",
-        updateUser
+        user
     })
 }
 
@@ -227,21 +223,15 @@ export const deleteAccount = async (req, res, next)=> {
     }
     // delete user data
     const deleteUser = await User.findByIdAndDelete(_id)
-    if (deleteUser.deletedCount == 0) {
-        return res.status(404).json({
-            msg: "Delete failed"
-        })
-    }
     // send email
     const isEmailSent = await sendEmailService({
         to: email,
         subject: "Welcome To E-commerce",
         message: '<h4>Your account has been deleted successfully</h4>'
     })
-    //check email is sent or not
-    if(!isEmailSent){
-        return res.status(500).json({
-            msg: "Failed to send email, Please try again later"
+    if (deleteUser.deletedCount == 0 && !isEmailSent) {
+        return res.status(404).json({
+            msg: "Delete failed"
         })
     }
     // send response
