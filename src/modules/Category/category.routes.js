@@ -2,6 +2,7 @@ import { Router } from "express";
 import expressAsyncHandler from "express-async-handler";
 
 import * as categoryController from "./category.controller.js"
+
 import {auth} from "../../middlewares/auth.middleware.js"
 import {multerMiddleHost} from "../../middlewares/multer.middleware.js"
 import { systemRoles } from "../../utils/system-roles.js";
@@ -24,6 +25,14 @@ multerMiddleHost({
 expressAsyncHandler(categoryController.updateCategory))
 
 router.get('/', expressAsyncHandler(categoryController.getCategoriesSeparately))
+
+router.get('/specific/:categoryId', expressAsyncHandler(categoryController.getCategorieById))
+
+router.get('/sub/:categoryId', expressAsyncHandler(categoryController.getSubInCategory))
+
+router.get('/brands/:categoryId', expressAsyncHandler(categoryController.getBrandsInCategory))
+
+router.get('/products/:categoryId', expressAsyncHandler(categoryController.getProductsInCategory))
 
 router.get('/withSubCategories', expressAsyncHandler(categoryController.getCategoriesWithSub))
 

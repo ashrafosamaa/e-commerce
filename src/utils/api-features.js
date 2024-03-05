@@ -39,4 +39,14 @@ export class APIFeatures {
         this.mongooseQuery = this.mongooseQuery.find(queryFiler)
         return this
     }
+    filter(filters) {
+        const queryFilter = JSON.parse(
+            JSON.stringify(filters).replace(
+                /gt|gte|lt|lte|in|nin|eq|ne|regex/g,
+                (operator) => `$${operator}`,
+            ),
+        )
+        this.mongooseQuery.find(queryFilter)
+        return this
+    }
 }

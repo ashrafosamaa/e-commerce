@@ -1,3 +1,5 @@
+import { APIFeatures } from "../../utils/api-features.js";
+
 import slugify from "slugify"
 
 import Category from "../../../DB/models/category.model.js";
@@ -117,17 +119,55 @@ export const updateSubCategory = async (req, res, next)=> {
 }
 
 export const getSubCategoriesSeparately = async (req, res, next)=> {
-    const subCategory = await SubCategory.find()
+    const {page, size, sort} = req.query
+    const features = new APIFeatures(req.query, SubCategory.find())
+    .pagination({page, size})
+    .sort()
+    const subCategory = await features.mongooseQuery
     res.status(200).json({ msg: "Sub Category fetched successfully", data: subCategory })
 }
 
+export const getSubCategoryById = async (req, res, next)=> {
+    const {subCategoryId} = req.params
+    const subCategory = await SubCategory.findById(subCategoryId)
+    res.status(200).json({ msg: "Sub Category fetched successfully", data: subCategory })
+}
+
+export const getBrandsInSubCategory = async (req, res, next)=> {
+    const {page, size, sort} = req.query
+    const {subCategoryId} = req.params
+    const features = new APIFeatures(req.query, Brand.find({subCategoryId}))
+    .pagination({page, size})
+    .sort()
+    const subCategory = await features.mongooseQuery
+    res.status(200).json({ msg: "Brands fetched successfully", data: subCategory })
+}
+
+export const getProductsInSubCategory = async (req, res, next)=> {
+    const {page, size, sort} = req.query
+    const {subCategoryId} = req.params
+    const features = new APIFeatures(req.query, Product.find({subCategoryId}))
+    .pagination({page, size})
+    .sort()
+    const subCategory = await features.mongooseQuery
+    res.status(200).json({ msg: "Products fetched successfully", data: subCategory })
+}
+
 export const getSubCategoriesWithBrand = async (req, res, next)=> {
-    const subCategory = await SubCategory.find().populate('Brands')
+    const {page, size, sort} = req.query
+    const features = new APIFeatures(req.query, SubCategory.find().populate('Brands'))
+    .pagination({page, size})
+    .sort()
+    const subCategory = await features.mongooseQuery
     res.status(200).json({ msg: "Sub Category fetched successfully", data: subCategory })
 }
 
 export const getSubCategoriesTillProducts = async (req, res, next)=> {
-    const subCategory = await SubCategory.find().populate([ { path: 'Brands', populate: {path: 'Products'} } ])
+    const {page, size, sort} = req.query
+    const features = new APIFeatures(req.query, SubCategory.find().populate([ { path: 'Brands', populate: {path: 'Products'} } ]))
+    .pagination({page, size})
+    .sort()
+    const subCategory = await features.mongooseQuery
     res.status(200).json({ msg: "SubCategory fetched successfully", data: subCategory })
 }
 

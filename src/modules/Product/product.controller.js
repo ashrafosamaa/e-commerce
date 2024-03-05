@@ -1,6 +1,7 @@
-import slugify from "slugify";
 import { systemRoles } from "../../utils/system-roles.js";
 import { APIFeatures } from "../../utils/api-features.js";
+
+import slugify from "slugify";
 
 import Brand from "../../../DB/models/brand.model.js";
 import Product from "../../../DB/models/product.model.js";
@@ -139,9 +140,19 @@ export const getSpecProduct = async (req, res, next)=> {
 export const searchProduct = async (req, res, next)=> {
     const {page, size, ...search} = req.query
     const features = new APIFeatures(req.query, Product.find())
-    // .pagination({ page, size })
-    // .sort()
+    .pagination({ page, size })
+    .sort()
     .search(search)
+    const products = await features.mongooseQuery
+    res.status(200).json({ msg: "Products fetched successfully", data: products })
+}
+
+export const filterProduct = async (req, res, next)=> {
+    const {page, size, ...search} = req.query
+    const features = new APIFeatures(req.query, Product.find())
+    .pagination({ page, size })
+    .sort()
+    .filter(search)
     const products = await features.mongooseQuery
     res.status(200).json({ msg: "Products fetched successfully", data: products })
 }

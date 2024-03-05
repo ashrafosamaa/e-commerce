@@ -2,6 +2,7 @@ import db_connection from "../DB/connection.js"
 import { globalResponse } from "./middlewares/global-response.middleware.js"
 import { rollbackSavedDocument } from "./middlewares/rollback-saved-document.middleware.js"
 import { rollbackUploadedFiles } from "./middlewares/rollback-uploaded-files.middleware.js"
+import { cronToCancelOrders, cronToChangeExpiredCoupons } from "./utils/crons.js"
 
 import * as routers from "./modules/index.routes.js"
 
@@ -18,8 +19,13 @@ export const initiateApp = (app, express)=> {
     app.use('/sub-category', routers.subCategoryRouter)
     app.use('/brand', routers.brandRouter)
     app.use('/product', routers.productRouter)
+    app.use('/cart', routers.cartRouter)
+    app.use('/coupon', routers.couponRouter)
+    app.use('/order', routers.orderRouter)
 
     app.use(globalResponse, rollbackUploadedFiles, rollbackSavedDocument)
+    cronToChangeExpiredCoupons()
+    // cronToCancelOrders()
 
     app.listen(port, ()=> console.log(`server is running on port ${port}`))
 

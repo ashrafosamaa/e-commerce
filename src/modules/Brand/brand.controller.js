@@ -1,3 +1,5 @@
+import { APIFeatures } from "../../utils/api-features.js";
+
 import slugify from "slugify";
 
 import SubCategory from "../../../DB/models/sub-category.model.js";
@@ -128,12 +130,36 @@ export const updateBrand = async (req, res, next)=> {
 }
 
 export const getBrandSeparately = async (req, res, next)=> {
-    const brand = await Brand.find()
+    const {page, size, sort} = req.query
+    const features = new APIFeatures(req.query, Brand.find())
+    .pagination({page, size})
+    .sort()
+    const brand = await features.mongooseQuery
     res.status(200).json({ msg: "Brands fetched successfully", data: brand })
 }
 
+export const getBrandById = async (req, res, next)=> {
+    const {brandId} = req.params
+    const brand = await Brand.findById(brandId)
+    res.status(200).json({ msg: "Brand fetched successfully", data: brand })
+}
+
+export const getProductsInBrand = async (req, res, next)=> {
+    const {page, size, sort} = req.query
+    const {brandId} = req.params
+    const features = new APIFeatures(req.query, Product.find({brandId}))
+    .pagination({page, size})
+    .sort()
+    const brand = await features.mongooseQuery
+    res.status(200).json({ msg: "Products fetched successfully", data: brand })
+}
+
 export const getBrandWithProducts = async (req, res, next)=> {
-    const brand = await Brand.find().populate([ { path: 'Products'} ])
+    const {page, size, sort} = req.query
+    const features = new APIFeatures(req.query, Brand.find().populate([ { path: 'Products'} ]))
+    .pagination({page, size})
+    .sort()
+    const brand = await features.mongooseQuery
     res.status(200).json({ msg: "Brands fetched successfully", data: brand })
 }
 

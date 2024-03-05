@@ -18,12 +18,12 @@ router.post('/login', validationMiddleware(loginSchema), authController.singIn)
 
 router.get('/verify-email', authController.verifyEmail)  
 
-router.put('/:userId', validationMiddleware(updateProfile), auth([systemRoles.USER, systemRoles.SELLER]), authController.updateProfileData)
+router.put('/:userId', auth([systemRoles.USER, systemRoles.SELLER]), validationMiddleware(updateProfile), authController.updateProfileData)
 
 router.patch('/:userId', auth([systemRoles.USER, systemRoles.SELLER]), authController.updatePassword)
 
-router.delete('/:userId', validationMiddleware(deleteProfile), auth([systemRoles.USER, systemRoles.SELLER]), authController.deleteAccount)
+router.delete('/:userId', auth([systemRoles.USER, validationMiddleware(deleteProfile), systemRoles.SELLER]), authController.deleteAccount)
 
-router.get('/account/:userId', validationMiddleware(getProfile), auth([systemRoles.USER, systemRoles.SELLER]), authController.getAccountData)
+router.get('/account/:userId', auth([systemRoles.USER, systemRoles.SELLER]), validationMiddleware(getProfile), authController.getAccountData)
 
 export default router;

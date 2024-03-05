@@ -41,7 +41,7 @@ export const signUp = async (req, res, next)=> {
         to: email,
         subject: "Welcome To E-commerce",
         message: `<h4>Click the link below to verify your email</h4>
-        <a href="${process.env.CLIENT_URL}/auth/verify-email?token=${userToken}">Verify your account</a>`,
+        <a href="${req.protocol}://${req.headers.host}/auth/verify-email?token=${userToken}">Verify your account</a>`,
     })
     //check email is sent or not
     if(!isEmailSent){
